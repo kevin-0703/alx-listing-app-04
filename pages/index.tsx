@@ -3,7 +3,8 @@ import Head from "next/head";
 import { BACKGROUND_IMAGE, PROPERTYLISTINGSAMPLE } from "@/constants";
 import Pill from "@/components/ui/Pill";
 import PropertyCard from "@/components/listing/PropertyCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 const filters = [
   "Top Villa",
@@ -22,6 +23,26 @@ const Home: NextPage = () => {
         p.category.join(" ").toLowerCase().includes(activeFilter.toLowerCase())
       )
     : PROPERTYLISTINGSAMPLE;
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await axios.get("/api/properties");
+        setProperties(response.data);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <>
@@ -68,6 +89,11 @@ const Home: NextPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((p) => (
             <PropertyCard key={p.name} property={p} />
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {properties.map((property) => (
+            <PropertyCard key={property.id} property={property} />
           ))}
         </div>
       </section>
